@@ -1,7 +1,7 @@
 # snake_game_in_C
 
 # Description: 
-It's simple snake game written in C language.
+It's a simple snake game written in C language.
 
 # Installation:
 Just copy the code and paste it in your IDE or Editor.Next, compile and run it.
