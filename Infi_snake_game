@@ -1,0 +1,199 @@
+#include <conio.h>
+#include <windows.h>
+#include<stdio.h>
+
+#define UP 72                   // ASCII Values of arrow keys and space and esc    
+#define DOWN 80
+#define LEFT 75
+#define RIGHT 77
+#define SPACE 32
+#define END 27
+
+const int width = 60;           //frame width
+const int height = 20;          // frame Height
+int x, y, foodX, foodY;    
+int life = 3,score = 0;
+int snakeX[100], snakeY[100];   // arrays for snake printing
+int length;                     //length of snake
+
+char dir;
+
+COORD coord= {0,0};             // this is global variable center of axis is set to the top left cornor of the screen
+
+void gotoxy(int x,int y)   //to move cursor to a particular location(don't need to initialize in turbo c++) 
+{
+    coord.X=x;
+    coord.Y=y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),coord);
+}  
+
+void Print()  // game instructions window 
+{
+   gotoxy(36,14);printf("Welcome to Snake game.");
+   gotoxy(36,15);printf("press any key to continue...\n");
+   getch();
+   system("cls");
+   gotoxy(45,3);printf("GAME INSTRUCTIONS:\n");
+   printf("\n-> Use arrow keys to move the snake.\n\n-> You have to eat food(denoted by F).\n\n-> No. of lives = 3.\n\n-> To Pause the game use space bar.\n\n-> To continue the paused game use arrow keys\n\n-> for exit press esc. \n");
+   printf("\n\nPress any key to play game...");
+   if(getch()==END)
+   exit(0);
+}
+
+void load()    // loading window(illusion)(actually nothing is loading we are only printing special char. in slow speed)
+{
+    int i,j;
+    gotoxy(36,14);printf("loading...");
+    gotoxy(30,15);
+    for(i=0;i<20;i++)
+	{
+    for(j=0;j<100000000;j++);     //to slowdown process
+    printf("%c",170);
+	}
+}  
+
+void Setup()          //for initializing setup in starting or after a life lost
+{
+//dir = '\0';
+x = width / 2;           // for initial x coordinate of snake
+y = height / 2;          // for initial y coordinate of snake
+foodX = rand() % width;  //random genernation of x coordinate(for limiting y coordinate with in width modulo is used) 
+foodY = rand() % height; //random genernation of y coordinate(for limiting y coordinate with in height modulo is used) 
+}
+
+void lifelost()         //when life is lost
+{	
+life--;
+Setup();
+gotoxy(25,15);printf("1 life Lost");
+gotoxy(25,16);printf("Use Arrow keys to resume game");
+getch();
+}
+
+void Frame()                    // for drawing frame,food & snake
+{ 
+system("cls");                        // for screen clearing
+for (int i = 0; i < width+1; i++)     // first line of frame
+printf("#");
+
+printf("\n");                                 
+
+for (int i = 0; i < height; i++)
+{
+for (int j = 0; j < width; j++)
+{
+if (j == 0 || j == width-1)  
+printf("#");                          // side lines of frame
+if (i == y && j == x)
+printf("O");                          // position of snake head
+else if (i == foodY && j == foodX)
+printf("F");                          //position of food(random)
+else
+{
+bool flag = false;
+for (int k = 0; k < length; k++)
+{
+if (snakeX[k] == j && snakeY[k] == i)
+{
+printf("o");    //snake body upto length(length will increase with food(see logic in move function )
+flag = true;
+}
+}
+if (!flag)
+printf(" ");
+}
+}
+printf("\n");
+}
+
+for (int i = 0; i < width+1; i++)        //last line(bottom) of frame
+printf("#");
+
+printf("\n");
+printf("SCORE = %d",score);              //score printing
+printf("\t\t\t\t\t    LIFE = %d",life);  // life printing
+}
+
+void Move()            //Input & Logic part 
+{	
+	if ( kbhit())      //keyboard input check 
+ { 
+    dir = getch();     //input sored in dir
+ }
+int prevX = snakeX[0];
+int prevY = snakeY[0];
+int prev2X, prev2Y;
+snakeX[0] = x;    
+snakeY[0] = y;
+for (int i = 1; i < length; i++)  // snake body updation 
+{
+prev2X = snakeX[i];
+prev2Y = snakeY[i];
+snakeX[i] = prevX;
+snakeY[i] = prevY;
+prevX = prev2X;
+prevY = prev2Y;
+}
+switch (dir)  //direction detection using dir(input was stored in dir)
+{
+case LEFT:
+x--;
+break;
+case RIGHT:
+x++;
+break;
+case UP:
+y--;
+break;
+case DOWN:
+y++;
+break;
+case SPACE:
+gotoxy(25,14);printf("Game Paused!!!");
+gotoxy(25,15);printf("Use Arrow keys to resume game");
+getch();
+break;
+case END:
+gotoxy(25,14);printf("Game Over!!!");
+exit(0);
+default:
+break;
+}
+
+//if(x >= width-1) x = 0; else if (x < 0) x = width - 1;
+//if (y >= height-1) y = 0; else if (y < 0) y = height - 1;
+//for making transperent wall uncomment 2 upper lines and comment if block below this comment line
+if (x > width || x < 0 || y > height || y < 0)                  
+{                                                              
+lifelost();	                                        
+}
+
+for (int i = 1; i < length; i++)    //when snake collide with it's own body
+if (snakeX[i] == x && snakeY[i] == y)
+lifelost();
+
+if (x == foodX && y == foodY)    //when snake eats food
+{
+score += 10;                      //score incremnt
+foodX = rand() % width;
+foodY = rand() % height;
+length++;                      //length increment
+}
+}
+
+int main()
+{
+Print();
+system("cls");
+load();
+Setup();
+while (life)   // loop will contiue until given lives
+{
+Frame();
+Move();
+Sleep(10); //to slow down snake speed
+}
+Frame();
+printf("\nGame Over :(\nTry Again !!!\nPress any key to proceed\n");
+return 0;
+}
